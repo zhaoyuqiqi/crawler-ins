@@ -9,4 +9,7 @@ export const MONGODB_CONFIG = {
   port: Number(process.env.MONGODB_PORT)
 };
 
+console.log('MONGODB_CONFIG', MONGODB_CONFIG);
+
 export const JWTTokens: Token[] = JSON.parse(process.env.JWT_TOKENS || '[]')
+console.log('JWTTokens', JWTTokens);
