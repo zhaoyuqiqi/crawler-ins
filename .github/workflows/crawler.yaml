@@ -1,0 +1,50 @@
+name: 抓取个人信息
+
+on:
+  workflow_dispatch:
+    inputs:
+      # 参数1 starId
+      starId:
+        description: 'StarId ID to crawl'
+        required: true
+      # 参数2
+      # aaa:
+      #   description: 'aaaaa'
+      #   required: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest # macOS 或 Windows 也可根据需要修改
+
+    steps:
+      # 1. 检出代码
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. 安装 Bun
+      - name: Install Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-download-url: 'https://github.com/oven-sh/bun/releases/latest/download/bun-linux-x64.zip'
+
+      # 5. 安装 Bun 依赖（Node.js 环境）
+      - name: Install Bun dependencies
+        run: |
+          if [ -f bun.lockb ]; then bun install --frozen-lockfile; fi
+          if [ -f package.json ] && [ ! -f bun.lockb ]; then bun install; fi
+
+      # - name: Install playwright
+      #   run: npx playwright install
+      - name: Run node script
+        # 在这里将starId传递到脚本中starId
+        env:
+          STAR_ID: ${{ github.event.inputs.starId }}
+          # DEPTH: ${{ github.event.inputs.depth }}
+        run: bun run crawler:star # 或你的 Python 测试命令
+        # STAR_ID=${{github.event.inputs.starId}}
+
+    # - name: Save format JSON as artifact
+    #   uses: actions/upload-artifact@v4
+    #   with:
+    #     name: output-json
+    #     path: output.json

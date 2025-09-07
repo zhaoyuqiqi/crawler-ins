@@ -1,0 +1,31 @@
+{
+  "name": "node-test",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "bun run src/main.ts",
+    "start": "NODE_ENV=prod bun run src/main.ts",
+    "crawler:star": "bun run src/crawle-star.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@types/cli-progress": "^3.11.6",
+    "axios": "^1.11.0",
+    "bun": "^1.2.20",
+    "cli-progress": "^3.12.0",
+    "colors": "^1.4.0",
+    "dayjs": "^1.11.13",
+    "mongoose": "^8.16.3",
+    "p-limit": "^6.2.0",
+    "playwright": "^1.54.1",
+    "playwright-extra": "^4.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2",
+    "retry-anything": "^1.0.4"
+  }
+}

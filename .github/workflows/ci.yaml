@@ -1,0 +1,49 @@
+name: instar数据抓取
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 */3 * * *' # 每3小时执行一次
+jobs:
+  build:
+    runs-on: ubuntu-latest # macOS 或 Windows 也可根据需要修改
+    environment:
+      name: production
+    steps:
+      # 1. 检出代码
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. 安装 Bun
+      - name: Install Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-download-url: 'https://github.com/oven-sh/bun/releases/latest/download/bun-linux-x64.zip'
+
+      # 5. 安装 Bun 依赖（Node.js 环境）
+      - name: Install Bun dependencies
+        run: |
+          if [ -f bun.lockb ]; then bun install --frozen-lockfile; fi
+          if [ -f package.json ] && [ ! -f bun.lockb ]; then bun install; fi
+        env:
+          MONGODB_USER: ${{secrets.MONGODB_USER}}
+          MONGODB_PASS: ${{secrets.MONGODB_PASS}}
+          MONGODB_HOST: ${{secrets.MONGODB_HOST}}
+          MONGODB_PORT: ${{secrets.MONGODB_PORT}}
+          JWT_TOKENS: ${{secrets.JWT_TOKENS}}
+
+      # - name: Install playwright
+      #   run: npx playwright install
+
+      - name: Run node script
+        run: bun run start # 或你的 Python 测试命令
+
+
+    # - name: Save format JSON as artifact
+    #   uses: actions/upload-artifact@v4
+    #   with:
+    #     name: output-json
+    #     path: output.json
