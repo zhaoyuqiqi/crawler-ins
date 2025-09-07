@@ -28,17 +28,17 @@ jobs:
         run: |
           if [ -f bun.lockb ]; then bun install --frozen-lockfile; fi
           if [ -f package.json ] && [ ! -f bun.lockb ]; then bun install; fi
+
+      # - name: Install playwright
+      #   run: npx playwright install
+
+      - name: Run node script
         env:
           MONGODB_USER: ${{secrets.MONGODB_USER}}
           MONGODB_PASS: ${{secrets.MONGODB_PASS}}
           MONGODB_HOST: ${{secrets.MONGODB_HOST}}
           MONGODB_PORT: ${{secrets.MONGODB_PORT}}
           JWT_TOKENS: ${{secrets.JWT_TOKENS}}
-
-      # - name: Install playwright
-      #   run: npx playwright install
-
-      - name: Run node script
         run: bun run start # 或你的 Python 测试命令
 
 
