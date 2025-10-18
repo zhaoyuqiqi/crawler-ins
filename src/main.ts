@@ -6,7 +6,7 @@ async function crawlerInsShow() {
   const ic = new InskeepCrawler();
   try {
     await ic.init();
-    const limit = pLimit(5);
+    const limit = pLimit(1);
     const ranks = await ic.getRankList();
     if (!ranks) {
       console.log("获取榜单失败");
@@ -20,6 +20,7 @@ async function crawlerInsShow() {
         continue;
       }
       while (data && data.list.length !== 0) {
+        console.log(`当前抓取的分类为:${groupId}，转换为inshow的id为${categoryMap.get(groupId) || 0}`);
         const tasks = data.list.map((user) =>
           limit(() =>
             ic.run({
