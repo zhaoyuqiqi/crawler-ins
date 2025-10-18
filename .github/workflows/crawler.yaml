@@ -44,6 +44,11 @@ jobs:
           STAR_ID: ${{ github.event.inputs.starId }}
           USER_NAME: ${{ github.event.inputs.userName }}
           FULL_NAME: ${{ github.event.inputs.fullName }}
+          MONGODB_USER: ${{secrets.MONGODB_USER}}
+          MONGODB_PASS: ${{secrets.MONGODB_PASS}}
+          MONGODB_HOST: ${{secrets.MONGODB_HOST}}
+          MONGODB_PORT: ${{secrets.MONGODB_PORT}}
+          JWT_TOKENS: ${{secrets.JWT_TOKENS}}
           # DEPTH: ${{ github.event.inputs.depth }}
         run: bun run crawler:star # 或你的 Python 测试命令
         # STAR_ID=${{github.event.inputs.starId}}
