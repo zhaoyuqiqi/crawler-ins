@@ -6,7 +6,7 @@ async function crawlerInsShow() {
   const ic = new InskeepCrawler();
   try {
     await ic.init();
-    const limit = pLimit(1);
+    const limit = pLimit(5);
     const ranks = await ic.getRankList();
     if (!ranks) {
       console.log("获取榜单失败");
