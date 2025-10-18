@@ -14,7 +14,7 @@ export interface Star {
   followingCount: number;
   // 分类
   categoryId: number;
-  isDel: number;
+  isDel?: number;
 }
 
 type StarSchema = Document & Star;

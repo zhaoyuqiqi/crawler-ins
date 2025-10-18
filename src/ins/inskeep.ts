@@ -164,13 +164,23 @@ export class InskeepCrawler {
     };
   }
 
-  private async *getFirstPage(
-    starId: string,
-    categoryId = 0
-  ): AsyncGenerator<Post[]> {
+  private async *getFirstPage(options: {
+    starId: string;
+    categoryId?: number;
+    userName?: string;
+    fullName?: string;
+  }): AsyncGenerator<Post[]> {
+    const { starId, categoryId = 0, userName, fullName } = options;
     try {
       const user = await this.getUserInfo(starId);
       if (!user) return;
+      if (userName) {
+        user.starName = userName;
+      }
+      if (fullName) {
+        user.fullName = fullName;
+        user.zhName = fullName;
+      }
       await this.db.saveUser({ ...user, categoryId });
       console.log("用户信息已保存至db", user);
       const recentlyId = await this.db.getFirstPostId(user?.insStarId);
@@ -186,7 +196,7 @@ export class InskeepCrawler {
           `获取到数据，offset: ${offset}，size: ${nextPageData.length}`
         );
         hasMore = !!nextPageData.length;
-        const ps = this.extraPost(nextPageData);
+        const ps = this.extraPost(nextPageData, userName, fullName);
         // 不是置顶数据并且数据库中存在该数据
         const idx = ps.findIndex(
           (post) => post.insPostId === recentlyId && !post.isTop
@@ -246,7 +256,11 @@ export class InskeepCrawler {
     }
   }
 
-  private extraPost(posts: InskeepPost[]) {
+  private extraPost(
+    posts: InskeepPost[],
+    startName?: string,
+    fullName?: string
+  ) {
     const extraAttachment = (post: InskeepPost) => {
       return post.sources!.map((item) => ({
         type: item.type as ResourceType,
@@ -262,8 +276,8 @@ export class InskeepCrawler {
       .map((post) => {
         return {
           insPostId: `${post.id}_${post.userId}`,
-          starName: post.userName,
-          fullName: post.userName,
+          starName: startName ?? post.userName,
+          fullName: fullName ?? post.userName,
           title: post.content,
           publishTime: post.takeAt,
           insStarId: post.userId,
@@ -273,12 +287,23 @@ export class InskeepCrawler {
       });
   }
 
-  async run(options: { starId: string; categoryId?: number; force?: boolean }) {
-    const { force, starId, categoryId } = options;
+  async run(options: {
+    starId: string;
+    categoryId?: number;
+    fullName?: string;
+    userName?: string;
+    force?: boolean;
+  }) {
+    const { force, starId, categoryId, userName, fullName } = options;
     if (force !== void 0) {
       this.force = force;
     }
-    const postsIterator = this.getFirstPage(starId, categoryId);
+    const postsIterator = this.getFirstPage({
+      starId,
+      categoryId,
+      fullName,
+      userName,
+    });
     const uploadMedia = new UploadMedia();
     for await (const originalPosts of postsIterator) {
       if (!originalPosts.length) {

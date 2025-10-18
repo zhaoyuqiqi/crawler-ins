@@ -8,9 +8,12 @@ on:
         description: 'StarId ID to crawl'
         required: true
       # 参数2
-      # aaa:
-      #   description: 'aaaaa'
-      #   required: true
+      userName:
+        description: '用户id'
+        required: false
+      fullName:
+        description: '用户全称'
+        required: false
 
 jobs:
   build:
@@ -39,6 +42,8 @@ jobs:
         # 在这里将starId传递到脚本中starId
         env:
           STAR_ID: ${{ github.event.inputs.starId }}
+          USER_NAME: ${{ github.event.inputs.userName }}
+          FULL_NAME: ${{ github.event.inputs.fullName }}
           # DEPTH: ${{ github.event.inputs.depth }}
         run: bun run crawler:star # 或你的 Python 测试命令
         # STAR_ID=${{github.event.inputs.starId}}

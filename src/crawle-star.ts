@@ -24,12 +24,16 @@ async function notifyNode(starId: string, token: string, status: number) {
 
 async function main() {
   const starId = process.env.STAR_ID;
+  const userName = process.env.USER_NAME;
+  const fullName = process.env.FULL_NAME;
   if (!starId) return;
   const ic = new InskeepCrawler();
   try {
     await ic.init(true);
     await ic.run({
       starId,
+      userName,
+      fullName,
     });
     await notifyNode(starId, 'instar', 1);
   } catch (error) {

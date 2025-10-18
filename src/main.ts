@@ -24,6 +24,8 @@ async function crawlerInsShow() {
           limit(() =>
             ic.run({
               starId: user.user_id,
+              fullName: user.full_name,
+              userName: user.username,
               categoryId: categoryMap.get(groupId) || 0,
             })
           )
