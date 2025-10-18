@@ -14,6 +14,7 @@ export interface Star {
   followingCount: number;
   // 分类
   categoryId: number;
+  isDel: number;
 }
 
 type StarSchema = Document & Star;
@@ -63,6 +64,11 @@ const Star = new Schema<StarSchema>(
       type: Number,
       required: true,
       index: true
+    },
+    isDel: {
+      type: Number,
+      required: true,
+      default: 0,
     },
   },
   {

@@ -2,11 +2,11 @@ name: instar数据抓取
 
 on:
   push:
-    branches: [main]
+    branches: [__main__]
   pull_request:
-    branches: [main]
+    branches: [__main__]
   schedule:
-    - cron: '0 */3 * * *' # 每3小时执行一次
+    - cron: '0 */6 * * *' # 每3小时执行一次
 jobs:
   build:
     runs-on: ubuntu-latest # macOS 或 Windows 也可根据需要修改
