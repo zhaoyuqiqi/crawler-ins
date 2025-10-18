@@ -12,9 +12,9 @@ import dayjs from "dayjs";
 import { JWTManager, JWTToken } from "../utils/dynamic-token";
 
 export class InshowCrawler {
-  private db: DataBase;
-  private force: boolean;
-  jwtManage: JWTManager;
+  private db!: DataBase;
+  private force!: boolean;
+  jwtManage!: JWTManager;
   private async fetch<T>(url: string) {
     let tokenObj: JWTToken | null = null;
     let times = 0;

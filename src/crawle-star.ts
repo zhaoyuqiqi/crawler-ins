@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { retry } from 'retry-anything';
-import { InshowCrawler } from './ins/inshow';
+import { InskeepCrawler } from './ins/inskeep';
 
 async function notifyNode(starId: string, token: string, status: number) {
   await retry({
@@ -25,7 +25,7 @@ async function notifyNode(starId: string, token: string, status: number) {
 async function main() {
   const starId = process.env.STAR_ID;
   if (!starId) return;
-  const ic = new InshowCrawler();
+  const ic = new InskeepCrawler();
   try {
     await ic.init(true);
     await ic.run({
