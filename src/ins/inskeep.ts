@@ -104,8 +104,8 @@ export class InskeepCrawler {
   }
   async getRankList() {
     return [
-      { id: 0, title: "推荐" },
-      { id: 1, title: "热门" },
+      // { id: 0, title: "推荐" },
+      // { id: 1, title: "热门" },
       { id: 2, title: "内地" },
       { id: 3, title: "港台" },
       { id: 4, title: "韩国" },
@@ -182,7 +182,7 @@ export class InskeepCrawler {
         user.zhName = fullName;
       }
       await this.db.saveUser({ ...user, categoryId });
-      console.log("用户信息已保存至db", user);
+      console.log("用户信息已保存至db", { ...user, categoryId } );
       const recentlyId = await this.db.getFirstPostId(user?.insStarId);
       console.log("recentlyId", recentlyId);
       let hasMore = true;
