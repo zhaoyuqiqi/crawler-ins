@@ -125,7 +125,7 @@ export class InskeepCrawler {
       {
         method: "POST",
         params: {
-          tag_id: group_id,
+          tagId: String(group_id),
           offset,
         },
       }
@@ -136,8 +136,6 @@ export class InskeepCrawler {
     return res;
   }
   private async getUserInfo(starId: string) {
-    console.log("获取用户信息");
-
     const user = await this.fetch<UserInfo>(
       "https://api.inskeep.cn/v2/app/api/owner/user",
       {
