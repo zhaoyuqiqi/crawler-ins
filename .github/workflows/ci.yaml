@@ -2,9 +2,9 @@ name: instar数据抓取
 
 on:
   push:
-    branches: [__main__]
+    branches: [main]
   pull_request:
-    branches: [__main__]
+    branches: [main]
   schedule:
     - cron: '0 */6 * * *' # 每3小时执行一次
 jobs:
