@@ -264,8 +264,8 @@ export class InskeepCrawler {
     const extraAttachment = (post: InskeepPost) => {
       return post.sources!.map((item) => ({
         type: item.type as ResourceType,
-        url: item.url,
-        thumbnail_url: item.type === "video" ? post.mainImage : item.url,
+        url: item.url.replace('http://','https://'),
+        thumbnail_url: item.type === "video" ? post.mainImage.replace('http://','https://') : item.url.replace('http://','https://'),
         width: 0,
         height: 0,
       }));
