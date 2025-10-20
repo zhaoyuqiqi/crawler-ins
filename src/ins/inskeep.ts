@@ -1,5 +1,6 @@
 import fakeua from "fake-useragent";
 import { v4 } from "uuid";
+import { imageSize } from "image-size";
 import {
   BaseResponse,
   InskeepPost,
@@ -180,7 +181,7 @@ export class InskeepCrawler {
         user.zhName = fullName;
       }
       await this.db.saveUser({ ...user, categoryId });
-      console.log("用户信息已保存至db", { ...user, categoryId } );
+      console.log("用户信息已保存至db", { ...user, categoryId });
       const recentlyId = await this.db.getFirstPostId(user?.insStarId);
       console.log("recentlyId", recentlyId);
       let hasMore = true;
@@ -194,7 +195,9 @@ export class InskeepCrawler {
           `获取到数据，offset: ${offset}，size: ${nextPageData.length}`
         );
         hasMore = !!nextPageData.length;
-        const ps = this.extraPost(nextPageData, userName, fullName);
+        const ps = await Promise.all(
+          this.extraPost(nextPageData, userName, fullName)
+        );
         // 不是置顶数据并且数据库中存在该数据
         const idx = ps.findIndex(
           (post) => post.insPostId === recentlyId && !post.isTop
@@ -259,19 +262,43 @@ export class InskeepCrawler {
     startName?: string,
     fullName?: string
   ) {
+    const getImageInfoByUrl = async (url: string) => {
+      try {
+        const res = await fetch(url);
+        const buffer = await res.arrayBuffer();
+        const { width, height } = imageSize(Buffer.from(buffer));
+        console.log("获取到图片宽高", width, height);
+        return {
+          width,
+          height,
+        };
+      } catch {
+        return {
+          width: 0,
+          height: 0,
+        };
+      }
+    };
+
     const extraAttachment = (post: InskeepPost) => {
-      return post.sources!.map((item) => ({
+      return post.sources!.map(async (item) => ({
         type: item.type as ResourceType,
-        url: item.url.replace('http://','https://'),
-        thumbnail_url: item.type === "video" ? post.mainImage.replace('http://','https://') : item.url.replace('http://','https://'),
-        width: 0,
-        height: 0,
+        url: item.url.replace("http://", "https://"),
+        thumbnail_url:
+          item.type === "video"
+            ? post.mainImage.replace("http://", "https://")
+            : item.url.replace("http://", "https://"),
+        ...(await getImageInfoByUrl(
+          item.type === "video"
+            ? post.mainImage.replace("http://", "https://")
+            : item.url.replace("http://", "https://")
+        )),
       }));
     };
 
     return posts
       .filter((post) => !!post.sources)
-      .map((post) => {
+      .map(async (post) => {
         return {
           insPostId: `${post.id}_${post.userId}`,
           starName: startName ?? post.userName,
@@ -280,7 +307,7 @@ export class InskeepCrawler {
           publishTime: post.takeAt,
           insStarId: post.userId,
           isTop: false,
-          resources: extraAttachment(post),
+          resources: await Promise.all(extraAttachment(post)),
         };
       });
   }
