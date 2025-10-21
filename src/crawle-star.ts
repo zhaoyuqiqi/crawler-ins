@@ -26,7 +26,8 @@ async function main() {
   const starId = process.env.STAR_ID;
   const userName = process.env.USER_NAME;
   const fullName = process.env.FULL_NAME;
-  console.log(starId, userName, fullName);
+  console.log('=======',process.env);
+  console.log('=======',starId, userName, fullName);
   if (!starId) return;
   const ic = new InskeepCrawler();
   try {
