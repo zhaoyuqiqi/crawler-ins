@@ -79,6 +79,7 @@ export class InskeepCrawler {
         },
       });
     }
+    console.log('request url:', url);
     const res = await fetch(url, {
       method,
       headers: this.headers,
@@ -147,7 +148,7 @@ export class InskeepCrawler {
       }
     );
     if (!user) return;
-    console.log("获取到用户信息");
+    console.log("获取到用户信息", user);
     const uploadMedia = new UploadMedia();
 
     const avatar = await uploadMedia.upload(user.userImage, "image");
