@@ -16,6 +16,7 @@ import { sleep } from "bun";
 import { retry } from "retry-anything";
 import axios from "axios";
 import { categoryMap } from "../constants";
+import { imginnFetchPost, ImginnParams } from "./imginn";
 
 export class InskeepCrawler {
   private db!: DataBase;
@@ -166,7 +167,8 @@ export class InskeepCrawler {
       postCount: user.mediaCount,
       followerCount: user.followers || userInfo.followers,
       followingCount: user.following,
-      categoryId: categoryId || categoryMap.get(userInfo.tag_id) || star?.categoryId || 0,
+      categoryId:
+        categoryId || categoryMap.get(userInfo.tag_id) || star?.categoryId || 0,
     };
   }
   private async searchUserInfoByName(fullName: string) {
@@ -253,7 +255,117 @@ export class InskeepCrawler {
       yield [];
     }
   }
+  private async *getFirstPageByInn(options: {
+    starId: string;
+    categoryId?: number;
+    userName?: string;
+    fullName?: string;
+  }): AsyncGenerator<Post[]> {
+    const { starId, categoryId = 0, userName, fullName } = options;
+    try {
+      const user = await this.getUserInfo(starId, categoryId);
+      if (!user) return;
+      if (userName) {
+        user.starName = userName;
+      }
+      if (fullName) {
+        user.fullName = fullName;
+        user.zhName = fullName;
+      }
+      await this.db.saveUser(user);
+      console.log("用户信息已保存至db", user);
+      const recentlyId = await this.db.getFirstPostId(user?.insStarId);
+      console.log("recentlyId", recentlyId);
+      let hasMore = true;
+      let cursor = "";
+      while (hasMore) {
+        const nextPageData = await this.getNextPageDataByImginn({
+          id: user.insStarId,
+          cursor,
+          username: user.starName || "",
+          verified: 0,
+        });
+        if (!nextPageData) {
+          break;
+        }
+        console.log(
+          `获取到数据，cursor: ${cursor}，size: ${nextPageData.items.length}`
+        );
+        hasMore = nextPageData.hasNext;
+        cursor = nextPageData.cursor;
+        const canExtraPosts = nextPageData.items
+          .filter((item) => !item.isPind)
+          .map(
+            (item) =>
+              ({
+                id: item.id,
+                userId: user.insStarId,
+                userName: user.starName || "",
+                content: item.alt,
+                takeAt: item.date,
+                mainImage: item.thumb,
+                userImage: user.avatar,
+                sources: item.srcs.map((src) => {
+                  if (item.isSidecar) {
+                    const isVideo = src.includes(".mp4?");
 
+                    return {
+                      type: isVideo ? "video" : "image",
+                      url: src,
+                      thumbnailUrl: isVideo ? item.thumb : src,
+                      id: 0,
+                    };
+                  }
+                  return {
+                    type: item.isVideo ? "video" : "image",
+                    url: src,
+                    thumbnailUrl: item.isVideo ? item.thumb : "image",
+                    id: 0,
+                  };
+                }),
+                likeCount: item.likeCount,
+                mediaCount: 0,
+                commentCount: item.commentCount,
+                isVideo: false,
+                isBookmarked: false,
+                isFollowed: false,
+                isLiked: false,
+              } satisfies InskeepPost)
+          );
+        const ps = await Promise.all(
+          this.extraPost(canExtraPosts, user.starName, user.fullName)
+        );
+        // 不是置顶数据并且数据库中存在该数据
+        const idx = ps.findIndex(
+          (post) => post.insPostId === recentlyId && !post.isTop
+        );
+        if (idx !== -1 && !this.force) {
+          console.log(
+            "数据库中存在该数据，只抓取该数据之前的数据，表示已全部加载完成"
+          );
+          yield ps.slice(0, idx);
+          break;
+        }
+        yield ps;
+        console.log("已添加到posts", hasMore);
+        if (!hasMore) {
+          break;
+        }
+        await sleep(2000);
+      }
+    } catch (error) {
+      console.log("getFirstPageByInn error", error);
+      yield [];
+    }
+  }
+
+  private async getNextPageDataByImginn(data: ImginnParams) {
+    const d = await imginnFetchPost(data);
+    if (d.code !== 200) {
+      return null;
+    }
+    return d;
+  }
   private async getNextPageData(userId: string, offset = 0) {
     try {
       let res: InskeepPost[] | null = null;
@@ -354,12 +466,18 @@ export class InskeepCrawler {
     if (force !== void 0) {
       this.force = force;
     }
-    const postsIterator = this.getFirstPage({
+    const postsIterator = this.getFirstPageByInn({
       starId,
       categoryId,
       fullName: fullName === "undefined" ? undefined : fullName,
       userName: userName === "undefined" ? undefined : userName,
     });
+    // const postsIterator = this.getFirstPage({
+    //   starId,
+    //   categoryId,
+    //   fullName: fullName === "undefined" ? undefined : fullName,
+    //   userName: userName === "undefined" ? undefined : userName,
+    // });
     const uploadMedia = new UploadMedia();
     for await (const originalPosts of postsIterator) {
       if (!originalPosts.length) {
