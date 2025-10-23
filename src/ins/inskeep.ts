@@ -8,6 +8,7 @@ import {
   LoginData,
   UserList,
   UserInfo,
+  InskeepSearchData,
 } from "../types/response/inskeep";
 import { Post, ResourceType, UploadMedia } from "./upload";
 import { DataBase } from "../database/db";
@@ -79,7 +80,7 @@ export class InskeepCrawler {
         },
       });
     }
-    console.log('request url:', url);
+    console.log("request url:", url);
     const res = await fetch(url, {
       method,
       headers: this.headers,
@@ -148,22 +149,48 @@ export class InskeepCrawler {
       }
     );
     if (!user) return;
-    console.log("获取到用户信息", user);
+    const userInfo = await this.searchUserInfoByName(user.userName);
+    if (!userInfo) return;
+    console.log("获取到用户信息", userInfo);
     const uploadMedia = new UploadMedia();
 
-    const avatar = await uploadMedia.upload(user.userImage, "image");
+    const avatar = await uploadMedia.upload(userInfo.avatar, "image");
     return {
-      insStarId: user.userId,
+      insStarId: userInfo.user_id,
       avatar,
-      starName: user.userName,
-      fullName: user.userName,
-      zhName: user.userName,
+      starName: userInfo.username,
+      fullName: userInfo.full_name,
+      zhName: userInfo.full_name,
       postCount: user.mediaCount,
       followerCount: user.followers,
       followingCount: user.following,
     };
   }
-
+  private async searchUserInfoByName(fullName: string) {
+    let list: InskeepSearchData["list"] = [];
+    await retry({
+      adapter: async () => {
+        try {
+          const res = await this.fetch<InskeepSearchData>(
+            "https://api.inskeep.cn/v2/app/api/owner/search",
+            {
+              method: "GET",
+              params: {
+                keyword: fullName,
+              },
+            }
+          );
+          if (res && res.list.length) {
+            list = res.list;
+          }
+          return !!(res && res.list.length);
+        } catch {
+          return false;
+        }
+      },
+    });
+    return list.find((user) => user.full_name.trim() === fullName.trim());
+  }
   private async *getFirstPage(options: {
     starId: string;
     categoryId?: number;
@@ -197,7 +224,7 @@ export class InskeepCrawler {
         );
         hasMore = !!nextPageData.length;
         const ps = await Promise.all(
-          this.extraPost(nextPageData, userName, fullName)
+          this.extraPost(nextPageData, user.starName, user.fullName)
         );
         // 不是置顶数据并且数据库中存在该数据
         const idx = ps.findIndex(
@@ -327,8 +354,8 @@ export class InskeepCrawler {
     const postsIterator = this.getFirstPage({
       starId,
       categoryId,
-      fullName: fullName === 'undefined' ? undefined : fullName,
-      userName: userName === 'undefined' ? undefined : userName,
+      fullName: fullName === "undefined" ? undefined : fullName,
+      userName: userName === "undefined" ? undefined : userName,
     });
     const uploadMedia = new UploadMedia();
     for await (const originalPosts of postsIterator) {

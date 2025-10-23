@@ -79,3 +79,19 @@ export interface UserInfo {
   mediaCount: number;
   isFollow: boolean;
 }
+
+interface InskeepSearchItem {
+  tag_id: number;
+  user_id: string;
+  full_name: string;
+  username: string;
+  followers: number;
+  category_name: string;
+  avatar: string;
+  edge_followed_by_count: number;
+  static_profile_pic_url_hd: string;
+}
+
+export interface InskeepSearchData {
+  list: InskeepSearchItem[];
+}
