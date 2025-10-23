@@ -175,7 +175,7 @@ export class InskeepCrawler {
           const res = await this.fetch<InskeepSearchData>(
             "https://api.inskeep.cn/v2/app/api/owner/search",
             {
-              method: "GET",
+              method: "POST",
               params: {
                 keyword: fullName,
               },
