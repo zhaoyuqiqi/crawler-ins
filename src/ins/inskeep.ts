@@ -15,6 +15,7 @@ import { DataBase } from "../database/db";
 import { sleep } from "bun";
 import { retry } from "retry-anything";
 import axios from "axios";
+import { categoryMap } from "../constants";
 
 export class InskeepCrawler {
   private db!: DataBase;
@@ -138,7 +139,7 @@ export class InskeepCrawler {
     }
     return res;
   }
-  private async getUserInfo(starId: string) {
+  private async getUserInfo(starId: string, categoryId: number) {
     const user = await this.fetch<UserInfo>(
       "https://api.inskeep.cn/v2/app/api/owner/user",
       {
@@ -165,6 +166,7 @@ export class InskeepCrawler {
       postCount: user.mediaCount,
       followerCount: user.followers || userInfo.followers,
       followingCount: user.following,
+      categoryId: categoryId || categoryMap.get(userInfo.tag_id) || star?.categoryId || 0,
     };
   }
   private async searchUserInfoByName(fullName: string) {
@@ -200,7 +202,7 @@ export class InskeepCrawler {
   }): AsyncGenerator<Post[]> {
     const { starId, categoryId = 0, userName, fullName } = options;
     try {
-      const user = await this.getUserInfo(starId);
+      const user = await this.getUserInfo(starId, categoryId);
       if (!user) return;
       if (userName) {
         user.starName = userName;
@@ -209,8 +211,8 @@ export class InskeepCrawler {
         user.fullName = fullName;
         user.zhName = fullName;
       }
-      await this.db.saveUser({ ...user, categoryId });
-      console.log("用户信息已保存至db", { ...user, categoryId });
+      await this.db.saveUser(user);
+      console.log("用户信息已保存至db", user);
       const recentlyId = await this.db.getFirstPostId(user?.insStarId);
       console.log("recentlyId", recentlyId);
       let hasMore = true;
