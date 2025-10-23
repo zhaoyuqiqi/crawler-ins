@@ -155,14 +155,15 @@ export class InskeepCrawler {
     const uploadMedia = new UploadMedia();
 
     const avatar = await uploadMedia.upload(userInfo.avatar, "image");
+    const star = await this.db.getStarByInsStarId(starId);
     return {
       insStarId: userInfo.user_id,
       avatar,
-      starName: userInfo.username,
-      fullName: userInfo.full_name,
-      zhName: userInfo.full_name,
+      starName: userInfo.username || star?.starName,
+      fullName: userInfo.full_name || star?.fullName,
+      zhName: userInfo.full_name || star?.zhName,
       postCount: user.mediaCount,
-      followerCount: user.followers,
+      followerCount: user.followers || userInfo.followers,
       followingCount: user.following,
     };
   }

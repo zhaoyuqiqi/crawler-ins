@@ -75,7 +75,11 @@ export class DataBase {
       categoryId: 0,
     });
   }
-
+  async getStarByInsStarId(insStarId: string) {
+    return Stars.findOne({
+      insStarId,
+    });
+  }
   async connect() {
     initializeConnectionEvents();
     // const uri = `mongodb://${user}:${password}@${host}:${port}/${name}?authSource=admin`;

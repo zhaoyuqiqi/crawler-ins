@@ -3,9 +3,9 @@ import { Schema, Document, model } from 'mongoose';
 export interface Star {
   insStarId: string;
   avatar: string;
-  starName: string;
-  fullName: string;
-  zhName: string;
+  starName?: string;
+  fullName?: string;
+  zhName?: string;
   // 帖子数量
   postCount: number;
   // 粉丝数量
