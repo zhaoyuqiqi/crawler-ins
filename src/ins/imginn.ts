@@ -12,21 +12,18 @@ export async function imginnFetchPost(params: ImginnParams) {
     baseURL: "https://imginn.com/api/posts",
     params,
   });
+
   const res = await fetch(url, {
     headers: {
       accept: "*/*",
       "user-agent": fakeUa(),
+      HOST: "imginn.com",
       "accept-language": "zh-CN,zh;q=0.9,en;q=0.8",
-      "cache-control": "no-cache",
-      pragma: "no-cache",
-      priority: "u=1, i",
-      "sec-ch-ua-mobile": "?0",
-      "sec-ch-ua-platform": '"macOS"',
       "sec-fetch-dest": "empty",
       "sec-fetch-mode": "cors",
-      "sec-fetch-site": "same-origin",
     },
   });
+  console.log('-----------------', await res.text());
   const data = await (res.json() as Promise<ImginnPostsResponse>);
   return data;
 }
