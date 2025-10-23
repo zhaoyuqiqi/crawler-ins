@@ -327,8 +327,8 @@ export class InskeepCrawler {
     const postsIterator = this.getFirstPage({
       starId,
       categoryId,
-      fullName,
-      userName,
+      fullName: fullName === 'undefined' ? undefined : fullName,
+      userName: userName === 'undefined' ? undefined : userName,
     });
     const uploadMedia = new UploadMedia();
     for await (const originalPosts of postsIterator) {
