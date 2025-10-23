@@ -14,16 +14,15 @@ export async function imginnFetchPost(params: ImginnParams) {
   });
 
   const res = await fetch(url, {
+    method: "GET",
     headers: {
-      accept: "*/*",
-      "user-agent": fakeUa(),
+      "user-agent": "PostmanRuntime/7.49.0",
       HOST: "imginn.com",
       "accept-language": "zh-CN,zh;q=0.9,en;q=0.8",
       "sec-fetch-dest": "empty",
       "sec-fetch-mode": "cors",
     },
   });
-  console.log('-----------------', await res.text());
   const data = await (res.json() as Promise<ImginnPostsResponse>);
   return data;
 }
