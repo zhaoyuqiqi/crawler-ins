@@ -286,6 +286,7 @@ export class InskeepCrawler {
           verified: 0,
         });
         if (!nextPageData) {
+          console.log('没有数据');
           break;
         }
         console.log(
@@ -346,8 +347,8 @@ export class InskeepCrawler {
           yield ps.slice(0, idx);
           break;
         }
-        yield ps;
         console.log("已添加到posts", hasMore);
+        yield ps;
         if (!hasMore) {
           break;
         }
