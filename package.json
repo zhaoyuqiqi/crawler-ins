@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "bun run src/main.ts",
     "start": "NODE_ENV=prod bun run src/main.ts",
-    "crawler:star": "bun run src/crawle-star.ts"
+    "crawler:star": "NODE_ENV=prod bun run src/crawle-star.ts"
   },
   "devDependencies": {
     "@types/bun": "latest",
