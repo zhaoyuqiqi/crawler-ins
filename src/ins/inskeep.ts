@@ -142,7 +142,6 @@ export class InskeepCrawler {
     if (!user) return;
     const userInfo = await this.searchUserInfoByName(user.userName);
     if (!userInfo) return;
-    console.log('获取到用户信息', userInfo);
     const uploadMedia = new UploadMedia();
 
     const avatar = await uploadMedia.upload(userInfo.avatar, 'image');
@@ -200,8 +199,8 @@ export class InskeepCrawler {
       }
       await this.db.saveUser(user);
       console.log('用户信息已保存至db', user);
-      const recentlyId = await this.db.getFirstPostId(user?.insStarId);
-      console.log('recentlyId', recentlyId);
+      const recently = await this.db.getFirstPostId(user?.insStarId);
+      console.log('recently', recently?.insPostId);
       let hasMore = true;
       let offset = 0;
       while (hasMore) {
@@ -210,11 +209,13 @@ export class InskeepCrawler {
           console.log('nextPageData 没有数据');
           break;
         }
-        console.log(`获取到数据，offset: ${offset}，size: ${nextPageData.length}`);
+        console.log(this.counter, starId, `获取到数据，offset: ${offset}，size: ${nextPageData.length}`);
         hasMore = !!nextPageData.length;
         const ps = await Promise.all(this.extraPost(nextPageData, user.starName, user.fullName));
         // 不是置顶数据并且数据库中存在该数据
-        const idx = ps.findIndex(post => post.insPostId === recentlyId && !post.isTop);
+        const idx = ps.findIndex(
+          post => (post.insPostId === recently?.insPostId && !post.isTop) || post.publishTime <= (recently?.publishTime || 0)
+        );
         if (idx !== -1 && !this.force) {
           console.log('数据库中存在该数据，只抓取该数据之前的数据，表示已全部加载完成');
           yield ps.slice(0, idx);
@@ -253,8 +254,8 @@ export class InskeepCrawler {
       }
       await this.db.saveUser(user);
       console.log('用户信息已保存至db', user);
-      const recentlyId = await this.db.getFirstPostId(user?.insStarId);
-      console.log('recentlyId', recentlyId);
+      const recently = await this.db.getFirstPostId(user?.insStarId);
+      console.log('recently', recently);
       let hasMore = true;
       let cursor = '';
       while (hasMore) {
@@ -312,7 +313,9 @@ export class InskeepCrawler {
           );
         const ps = await Promise.all(this.extraPost(canExtraPosts, user.starName, user.fullName));
         // 不是置顶数据并且数据库中存在该数据
-        const idx = ps.findIndex(post => post.insPostId === recentlyId && !post.isTop);
+        const idx = ps.findIndex(
+          post => (post.insPostId === recently?.insPostId && !post.isTop) || post.publishTime <= (recently?.publishTime || 0)
+        );
         if (idx !== -1 && !this.force) {
           console.log('数据库中存在该数据，只抓取该数据之前的数据，表示已全部加载完成');
           yield ps.slice(0, idx);
@@ -365,7 +368,6 @@ export class InskeepCrawler {
           }
         },
       });
-      console.log('获取到次级页面数据');
       return res!;
     } catch (error) {
       console.log('次级页面报错', error);

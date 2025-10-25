@@ -66,7 +66,7 @@ export class DataBase {
       publishTime: -1,
     });
     if (post) {
-      return post.insPostId;
+      return post;
     }
   }
 
