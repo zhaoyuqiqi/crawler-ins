@@ -24,6 +24,7 @@ export class InskeepCrawler {
   private token!: string;
   private headers!: Headers;
   private deviceId: string = v4().slice(0, 32);
+  private counter = 0;
   private async login() {
     this.headers = new Headers();
     this.headers.append('Content-Type', 'application/json');
@@ -206,6 +207,7 @@ export class InskeepCrawler {
       while (hasMore) {
         const nextPageData = await this.getNextPageData(user.insStarId, offset);
         if (!nextPageData) {
+          console.log('nextPageData 没有数据');
           break;
         }
         console.log(`获取到数据，offset: ${offset}，size: ${nextPageData.length}`);
@@ -218,14 +220,15 @@ export class InskeepCrawler {
           yield ps.slice(0, idx);
           break;
         }
-        yield ps;
         console.log('已添加到posts', hasMore);
+        yield ps;
         if (!hasMore) {
           break;
         }
         await sleep(2000);
         offset++;
       }
+      yield [];
     } catch (error) {
       console.log('getFirstPage error', error);
       yield [];
@@ -376,7 +379,6 @@ export class InskeepCrawler {
         const res = await fetch(url);
         const buffer = await res.arrayBuffer();
         const { width, height } = imageSize(Buffer.from(buffer));
-        console.log('获取到图片宽高', width, height);
         return {
           width,
           height,
@@ -422,6 +424,8 @@ export class InskeepCrawler {
     if (force !== void 0) {
       this.force = force;
     }
+    this.counter++;
+    console.log(`开始第${this.counter}个starId抓取任务，starId:`, starId);
     // const postsIterator = this.getFirstPageByInn({
     //   starId,
     //   categoryId,
@@ -440,7 +444,7 @@ export class InskeepCrawler {
         continue;
       }
       const formatPosts = await uploadMedia.uploadMulMeidaToCdn(originalPosts);
-      console.log('本次请求共有', formatPosts.length, '条数据');
+      console.log(this.counter, starId, '本次请求共有', formatPosts.length, '条数据');
       if (!formatPosts.length) {
         continue;
       }
